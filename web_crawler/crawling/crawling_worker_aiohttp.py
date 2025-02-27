@@ -27,17 +27,3 @@ class AiohttpCrawler:
                     return None
                 # FIXME: Check for content type and bail out early
                 return await response.text()
-
-
-if __name__ == "__main__":
-    # Test the crawler
-    import asyncio
-
-    async def test():
-        session = ClientSession()
-        crawler = AiohttpCrawler(session=session)
-        url = "https://example.com/"
-        content = await crawler.get_content(url)
-        print(content)
-
-    asyncio.run(test())
