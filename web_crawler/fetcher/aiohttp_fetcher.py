@@ -11,14 +11,9 @@ STATUS_OK = 200
 class AiohttpFetcher:
     """A crawler implementation that uses aiohttp for asynchronous crawling"""
 
-    session: ClientSession
-
-    def __init__(self, session: ClientSession):
-        self.session = session
-
     @retry(wait=wait_exponential_jitter(max=30), stop=stop_after_attempt(5))
     async def get_content(self, url: str) -> Optional[str]:
-        async with self.session as session:
+        async with ClientSession() as session:
             async with session.get(url) as response:
                 if response.status != 200:
                     logger.warning(
