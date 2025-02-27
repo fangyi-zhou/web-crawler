@@ -8,7 +8,7 @@ CONTENT_TYPE_HTML = "text/html"
 STATUS_OK = 200
 
 
-class AiohttpCrawler:
+class AiohttpFetcher:
     """A crawler implementation that uses aiohttp for asynchronous crawling"""
 
     session: ClientSession

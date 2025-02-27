@@ -1,11 +1,11 @@
 from typing import Optional, Protocol
 
 
-class Crawler(Protocol):
+class Fetcher(Protocol):
     """
     An interface for a crawler worker implementation
     """
 
-    async def crawl(self, url: str) -> Optional[str]:
+    async def get_content(self, url: str) -> Optional[str]:
         """Fetch the requested URL, return the content when successful"""
         ...
