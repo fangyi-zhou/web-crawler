@@ -14,11 +14,23 @@ class AiohttpFetcher:
     @retry(wait=wait_exponential_jitter(max=30), stop=stop_after_attempt(5))
     async def get_content(self, url: str) -> Optional[str]:
         async with ClientSession() as session:
-            async with session.get(url) as response:
+            async with session.get(
+                url, headers={"Accept": CONTENT_TYPE_HTML}
+            ) as response:
                 if response.status != 200:
                     logger.warning(
                         "Got non-OK status {}, skipping. url = {}", response.status, url
                     )
                     return None
-                # FIXME: Check for content type and bail out early
-                return await response.text()
+                if CONTENT_TYPE_HTML not in response.headers.get("Content-Type", ""):
+                    logger.warning(
+                        "Got non-HTML content type {}, skipping. url = {}",
+                        response.headers.get("Content-Type"),
+                        url,
+                    )
+                    return None
+                try:
+                    return await response.text()
+                except UnicodeDecodeError:
+                    logger.exception("Failed to decode response as text")
+                    return None

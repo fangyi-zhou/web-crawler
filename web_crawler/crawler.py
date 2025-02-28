@@ -19,7 +19,11 @@ class Crawler:
             if url in self.visited:
                 continue
             self.visited.add(url)
-            content = await self.fetcher.get_content(url)
+            try:
+                content = await self.fetcher.get_content(url)
+            except:
+                logger.exception("Failed to fetch URL {}", url)
+                continue
             if content is None:
                 continue
             links: set[str] = set(
