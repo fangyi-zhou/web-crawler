@@ -1,7 +1,18 @@
-from urllib.parse import urljoin
+from urllib.parse import urldefrag, urljoin
 
 from bs4 import BeautifulSoup
 from loguru import logger
+
+
+def _process_link(link: str, base_url: str) -> str:
+    """Process a single link, converting relative links to absolute links, and also removing any fragments.
+    :param link: The link to process.
+    :param base_url: The base URL to use for relative links.
+    :return: The processed link.
+    """
+    link = urljoin(base_url, link)
+    url, _fragment = urldefrag(link)
+    return url
 
 
 def find_links(content: str, base_url: str) -> set[str]:
@@ -17,5 +28,6 @@ def find_links(content: str, base_url: str) -> set[str]:
         base_url = base_tag.attrs["href"]
         logger.debug("Found base url {} in HTML", base_url)
     return {
-        urljoin(base_url, link.attrs["href"]) for link in soup.find_all("a", href=True)
+        _process_link(link.attrs["href"], base_url=base_url)
+        for link in soup.find_all("a", href=True)
     }
