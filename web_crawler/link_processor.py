@@ -12,7 +12,7 @@ def find_links(content: str, base_url: str) -> set[str]:
     :return: a set of strings of links found in the HTML content.
     """
     soup = BeautifulSoup(content, "html.parser")
-    base_tag = soup.find("base", href=True)
+    base_tag = soup.find("base")
     if base_tag:
         base_url = base_tag.attrs["href"]
         logger.debug("Found base url {} in HTML", base_url)
