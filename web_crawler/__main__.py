@@ -7,8 +7,8 @@ from web_crawler.fetcher.aiohttp_fetcher import AiohttpFetcher
 
 async def run_crawler(start_url: str):
     fetcher = AiohttpFetcher()
-    crawler = Crawler(fetcher=fetcher)
-    await crawler.start(start_url)
+    crawler = Crawler(fetcher=fetcher, start_url=start_url)
+    await crawler.start()
 
 
 def main():
