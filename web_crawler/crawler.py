@@ -14,6 +14,7 @@ class Crawler:
     worklist: asyncio.Queue
     start_url: str
     worker_count: int
+    output: dict[str, set[str]]
 
     def __init__(
         self, fetcher: Fetcher, start_url: str, worker_count: int = DEFAULT_WORKER_COUNT
@@ -23,6 +24,7 @@ class Crawler:
         self.worklist = asyncio.Queue()
         self.start_url = start_url
         self.worker_count = worker_count
+        self.output = dict()
 
     async def process_url(self, url: str) -> None:
         """Process a single URL. Use the fetcher to fetch the content, and add
@@ -38,15 +40,15 @@ class Crawler:
                 return
             if content is None:
                 return
-            links: set[str] = set(
-                filter(
-                    lambda link: link.startswith(self.start_url),
-                    find_links(content, base_url=url),
-                )
+            all_links: set[str] = set(
+                find_links(content, base_url=url),
             )
-            # TODO: output this properly
-            logger.info("URL {} has following links {}", url, links)
-            new_urls = links - self.visited
+            self.output[url] = all_links
+            logger.info("URL {} has following links {}", url, all_links)
+            links_to_follow: set[str] = set(
+                filter(lambda link: link.startswith(self.start_url), all_links)
+            )
+            new_urls = links_to_follow - self.visited
             await asyncio.gather(*(self.worklist.put(new_url) for new_url in new_urls))
         finally:
             # Important: `task_done` needs to be called to signify to the queue
@@ -63,7 +65,7 @@ class Crawler:
             logger.debug("Worker id {} fetching {}", id, url)
             await self.process_url(url)
 
-    async def start(self) -> None:
+    async def start(self) -> dict[str, set[str]]:
         """Start crawling."""
         await self.worklist.put(self.start_url)
         async with asyncio.TaskGroup() as group:
@@ -75,3 +77,4 @@ class Crawler:
             for task in tasks:
                 task.cancel()
             logger.info("Done")
+        return self.output
