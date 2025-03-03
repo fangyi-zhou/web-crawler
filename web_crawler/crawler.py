@@ -1,4 +1,5 @@
 import asyncio
+from typing import Optional
 
 from loguru import logger
 
@@ -17,13 +18,13 @@ class Crawler:
     output: dict[str, set[str]]
 
     def __init__(
-        self, fetcher: Fetcher, start_url: str, worker_count: int = DEFAULT_WORKER_COUNT
+        self, fetcher: Fetcher, start_url: str, worker_count: Optional[int] = None
     ):
         self.fetcher = fetcher
         self.visited = set()
         self.worklist = asyncio.Queue()
         self.start_url = start_url
-        self.worker_count = worker_count
+        self.worker_count = worker_count or DEFAULT_WORKER_COUNT
         self.output = dict()
 
     async def process_url(self, url: str) -> None:
@@ -68,6 +69,7 @@ class Crawler:
     async def start(self) -> dict[str, set[str]]:
         """Start crawling."""
         await self.worklist.put(self.start_url)
+        logger.info("Starting crawler with {} workers", self.worker_count)
         async with asyncio.TaskGroup() as group:
             tasks = [
                 group.create_task(self.worker(i)) for i in range(self.worker_count)
