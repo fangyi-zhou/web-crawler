@@ -65,10 +65,3 @@ def test_link_processor_can_find_a_single_relative_link_with_base_html():
     )
     links = find_links(html, base_url="https://example.com/")
     assert links == {"https://example2.com/page"}
-
-
-def test_link_processor_can_find_a_single_link():
-    # Produce a basic HTML document with a single link
-    html = BASIC_HTML.format(head="", body='<a href="https://example.com">Example</a>')
-    links = find_links(html, base_url="https://example.com")
-    assert links == {"https://example.com"}
