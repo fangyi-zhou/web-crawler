@@ -23,6 +23,11 @@ mypy = "^1.15.0"
 poetry = "^2.1.1"
 pytest = "^8.3.4"
 coverage = "^7.6.12"
+pytest-asyncio = "^0.25.3"
+pytest-mock = "^3.14.0"
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
 
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]

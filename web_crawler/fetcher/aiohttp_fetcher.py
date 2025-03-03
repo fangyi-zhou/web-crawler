@@ -22,7 +22,10 @@ class AiohttpFetcher:
                         "Got non-OK status {}, skipping. url = {}", response.status, url
                     )
                     return None
-                if CONTENT_TYPE_HTML not in response.headers.get("Content-Type", ""):
+                # Check the content type in header. If none is present, let's assume the content is html.
+                if CONTENT_TYPE_HTML not in response.headers.get(
+                    "Content-Type", CONTENT_TYPE_HTML
+                ):
                     logger.warning(
                         "Got non-HTML content type {}, skipping. url = {}",
                         response.headers.get("Content-Type"),
