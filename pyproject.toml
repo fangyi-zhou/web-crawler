@@ -22,6 +22,7 @@ isort = "^6.0.0"
 mypy = "^1.15.0"
 poetry = "^2.1.1"
 pytest = "^8.3.4"
+coverage = "^7.6.12"
 
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]
