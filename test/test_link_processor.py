@@ -65,3 +65,18 @@ def test_link_processor_can_find_a_single_relative_link_with_base_html():
     )
     links = find_links(html, base_url="https://example.com/")
     assert links == {"https://example2.com/page"}
+
+
+def test_link_processor_not_html_input_returns_empty():
+    links = find_links("NOT_HTML", base_url="https://example.com/")
+    assert links == set()
+
+
+def test_link_processor_can_handle_empty_input_returns_empty():
+    links = find_links("", base_url="https://example.com/")
+    assert links == set()
+
+
+def test_link_processor_can_handle_incorrect_html():
+    links = find_links("</html>", base_url="https://example.com/")
+    assert links == set()
