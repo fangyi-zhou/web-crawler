@@ -27,44 +27,44 @@ class Crawler:
         self.worker_count = worker_count or DEFAULT_WORKER_COUNT
         self.output = dict()
 
-    async def process_url(self, url: str) -> None:
+    async def _process_url(self, url: str) -> None:
         """Process a single URL. Use the fetcher to fetch the content, and add
         new links into the worklist."""
+        if url in self.visited:
+            return
+        self.visited.add(url)
         try:
-            if url in self.visited:
-                return
-            self.visited.add(url)
-            try:
-                content = await self.fetcher.get_content(url)
-            except:
-                logger.exception("Failed to fetch URL {}", url)
-                return
-            if content is None:
-                return
-            all_links: set[str] = set(
-                find_links(content, base_url=url),
-            )
-            self.output[url] = all_links
-            logger.info("URL {} has following links {}", url, all_links)
-            links_to_follow: set[str] = set(
-                filter(lambda link: link.startswith(self.start_url), all_links)
-            )
-            new_urls = links_to_follow - self.visited
-            await asyncio.gather(*(self.worklist.put(new_url) for new_url in new_urls))
-        finally:
-            # Important: `task_done` needs to be called to signify to the queue
-            # that processing has been done. Otherwise `.join` call would not
-            # work properly.
-            self.worklist.task_done()
+            content = await self.fetcher.get_content(url)
+        except:
+            logger.exception("Failed to fetch URL {}", url)
+            return
+        if content is None:
+            return
+        all_links: set[str] = set(
+            find_links(content, base_url=url),
+        )
+        self.output[url] = all_links
+        logger.info("URL {} has following links {}", url, all_links)
+        links_to_follow: set[str] = set(
+            filter(lambda link: link.startswith(self.start_url), all_links)
+        )
+        new_urls = links_to_follow - self.visited
+        await asyncio.gather(*(self.worklist.put(new_url) for new_url in new_urls))
 
-    async def worker(self, id: int) -> None:
+    async def _worker(self, id: int) -> None:
         """Main loop for a worker task: continuous get new URLs to fetch and use
         the fetch to get the links."""
         logger.info("Starting worker task #{}", id)
         while True:
             url = await self.worklist.get()
             logger.debug("Worker id {} fetching {}", id, url)
-            await self.process_url(url)
+            try:
+                await self._process_url(url)
+            finally:
+                # Important: `task_done` needs to be called to signify to the queue
+                # that processing has been done. Otherwise `.join` call would not
+                # work properly.
+                self.worklist.task_done()
 
     async def start(self) -> dict[str, set[str]]:
         """Start crawling."""
@@ -72,7 +72,7 @@ class Crawler:
         logger.info("Starting crawler with {} workers", self.worker_count)
         async with asyncio.TaskGroup() as group:
             tasks = [
-                group.create_task(self.worker(i)) for i in range(self.worker_count)
+                group.create_task(self._worker(i)) for i in range(self.worker_count)
             ]
             await self.worklist.join()
             # Cancel worker tasks since the all URLs in the worklist has been crawled.
